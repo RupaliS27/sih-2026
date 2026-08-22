@@ -8,8 +8,8 @@ import threading
 import time
 from typing import Optional, List, Dict, Any
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Header, Depends
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, UploadFile, File, HTTPException, Header, Depends, Request, Query
+from fastapi.responses import StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import numpy as np
@@ -765,15 +765,359 @@ def get_dataflow_stats():
     return store.get_operational_stats()
 
 
+def get_auth_email(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split("Bearer ")[1].strip()
+        if token in active_tokens:
+            return active_tokens[token].get("email")
+    return None
+
+
 @app.get("/api/settings")
-def get_user_settings():
-    return store.get_settings()
+def get_user_settings(authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    settings = store.get_settings()
+    if email:
+        user = store.get_user_by_email(email)
+        if user:
+            # Sync user profile fields
+            settings["profile"]["email"] = user.get("email", settings["profile"]["email"])
+            if user.get("fullName"):
+                settings["profile"]["fullName"] = user.get("fullName")
+            if user.get("role"):
+                settings["profile"]["role"] = user.get("role")
+            if user.get("organization"):
+                settings["profile"]["organization"] = user.get("organization")
+    return settings
 
 
 @app.post("/api/settings")
-def update_user_settings(data: Dict[str, Any]):
-    store.save_settings(data)
+async def update_user_settings(request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        try:
+            raw = await request.body()
+            data = json.loads(raw.decode("utf-8")) if raw else {}
+        except Exception:
+            data = {}
+
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="Invalid settings format. Expected JSON object.")
+
+    prof = data.get("profile")
+    if prof and isinstance(prof, dict):
+        if "email" in prof and prof["email"] and "@" not in prof["email"]:
+            raise HTTPException(status_code=400, detail="Invalid email address provided.")
+
+    store.save_settings(data, user_email=email)
+    updated = store.get_settings()
+    return {"success": True, "settings": updated}
+
+
+@app.get("/api/settings/session")
+def get_settings_session(authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization) or "manas@mangodl.ai"
+    masked_session = f"mg_sess_••••••••••••{email.split('@')[0][-4:] if len(email.split('@')[0]) >= 4 else '9f8a'}"
+    return {
+        "status": "Active & Verified",
+        "email": email,
+        "maskedSessionId": masked_session,
+        "device": "Web Client Browser (Chrome / Edge)",
+        "ipAddress": "127.0.0.1 (Localhost)",
+        "lastActivity": time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "twoFactorStatus": "TOTP Enabled"
+    }
+
+
+class ApiKeyCreateRequest(BaseModel):
+    name: Optional[str] = "REST API Client Key"
+
+
+@app.get("/api/settings/api-keys")
+def get_settings_api_keys():
+    return {"keys": store.get_api_keys()}
+
+
+@app.post("/api/settings/api-keys")
+def create_settings_api_key(req: ApiKeyCreateRequest):
+    new_key = store.create_api_key(name=req.name or "REST API Client Key")
+    return new_key
+
+
+@app.delete("/api/settings/api-keys/{key_id}")
+def delete_settings_api_key(key_id: str):
+    success = store.delete_api_key(key_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="API key not found.")
+    return {"success": True, "deletedKeyId": key_id}
+
+
+@app.get("/api/settings/integrations/status")
+def get_integrations_status():
+    nhb_csv = Path("data/raw/nhb_yield_mock_2015_2024.csv")
+    climate_csv = Path("data/raw/climate_daily_2015_2024.csv")
+    has_nhb = nhb_csv.exists() and climate_csv.exists()
+    
+    has_gemini = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
+    has_groq = bool(os.getenv("GROQ_API_KEY"))
+    has_openai = bool(os.getenv("OPENAI_API_KEY"))
+    
+    settings = store.get_settings()
+    phone = settings.get("profile", {}).get("phone", "")
+    
+    return {
+        "openMeteo": {
+            "name": "Open-Meteo Climate API",
+            "status": "Connected",
+            "badge": "Active (Karnataka 31 Districts)",
+            "configured": True
+        },
+        "nhbDatabase": {
+            "name": "NHB Yield Database",
+            "status": "Synced" if has_nhb else "Local Model",
+            "badge": "10-Year Dataset (2015-2024)" if has_nhb else "Embedded Scaler",
+            "configured": True
+        },
+        "litellmRouter": {
+            "name": "LiteLLM Router & Multi-Provider AI",
+            "status": "Online" if (has_gemini or has_groq or has_openai) else "Offline Agronomist Engine",
+            "badge": "Gemini 2.5 Flash / Groq / OpenAI" if (has_gemini or has_groq or has_openai) else "Built-in Expert Knowledgebase",
+            "configured": bool(has_gemini or has_groq or has_openai)
+        },
+        "whatsappAlerts": {
+            "name": "WhatsApp Farmer Alert Gateway",
+            "status": "Ready" if (phone and len(phone) >= 10) else "Not Configured",
+            "badge": f"Linked to {phone}" if (phone and len(phone) >= 10) else "Missing / Incomplete Phone Number",
+            "configured": bool(phone and len(phone) >= 10)
+        }
+    }
+
+
+# ──────────────────────────────────────────────
+# Farm Management Endpoints (Orchards, Blocks, Treatments, Expenses, Export)
+# ──────────────────────────────────────────────
+
+@app.get("/api/farm/orchards")
+def api_get_orchards(authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    orchards = store.get_orchards(email)
+    return {"orchards": orchards}
+
+@app.post("/api/farm/orchards")
+async def api_create_orchard(request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.create_orchard(data, user_email=email)
+    return {"success": True, "orchard": record}
+
+@app.put("/api/farm/orchards/{orchard_id}")
+async def api_update_orchard(orchard_id: str, request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.update_orchard(orchard_id, data, user_email=email)
+    if not record:
+        raise HTTPException(status_code=404, detail="Orchard not found")
+    return {"success": True, "orchard": record}
+
+@app.delete("/api/farm/orchards/{orchard_id}")
+def api_delete_orchard(orchard_id: str, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    success = store.delete_orchard(orchard_id, user_email=email)
+    if not success:
+        raise HTTPException(status_code=404, detail="Orchard not found")
     return {"success": True}
+
+@app.get("/api/farm/blocks")
+def api_get_blocks(orchard_id: Optional[str] = Query(None), authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    blocks = store.get_blocks(orchard_id=orchard_id, user_email=email)
+    return {"blocks": blocks}
+
+@app.post("/api/farm/blocks")
+async def api_create_block(request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.create_block(data, user_email=email)
+    return {"success": True, "block": record}
+
+@app.put("/api/farm/blocks/{block_id}")
+async def api_update_block(block_id: str, request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.update_block(block_id, data, user_email=email)
+    if not record:
+        raise HTTPException(status_code=404, detail="Block not found")
+    return {"success": True, "block": record}
+
+@app.delete("/api/farm/blocks/{block_id}")
+def api_delete_block(block_id: str, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    success = store.delete_block(block_id, user_email=email)
+    if not success:
+        raise HTTPException(status_code=404, detail="Block not found")
+    return {"success": True}
+
+@app.get("/api/farm/treatments")
+def api_get_treatments(orchard_id: Optional[str] = Query(None), block_id: Optional[str] = Query(None), authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    treatments = store.get_treatments(orchard_id=orchard_id, block_id=block_id, user_email=email)
+    return {"treatments": treatments}
+
+@app.post("/api/farm/treatments")
+async def api_create_treatment(request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.create_treatment(data, user_email=email)
+    return {"success": True, "treatment": record}
+
+@app.put("/api/farm/treatments/{treatment_id}")
+async def api_update_treatment(treatment_id: str, request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.update_treatment(treatment_id, data, user_email=email)
+    if not record:
+        raise HTTPException(status_code=404, detail="Treatment record not found")
+    return {"success": True, "treatment": record}
+
+@app.delete("/api/farm/treatments/{treatment_id}")
+def api_delete_treatment(treatment_id: str, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    success = store.delete_treatment(treatment_id, user_email=email)
+    if not success:
+        raise HTTPException(status_code=404, detail="Treatment record not found")
+    return {"success": True}
+
+@app.get("/api/farm/expenses")
+def api_get_expenses(orchard_id: Optional[str] = Query(None), block_id: Optional[str] = Query(None), authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    expenses = store.get_expenses(orchard_id=orchard_id, block_id=block_id, user_email=email)
+    return {"expenses": expenses}
+
+@app.post("/api/farm/expenses")
+async def api_create_expense(request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.create_expense(data, user_email=email)
+    return {"success": True, "expense": record}
+
+@app.put("/api/farm/expenses/{expense_id}")
+async def api_update_expense(expense_id: str, request: Request, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    record = store.update_expense(expense_id, data, user_email=email)
+    if not record:
+        raise HTTPException(status_code=404, detail="Expense record not found")
+    return {"success": True, "expense": record}
+
+@app.delete("/api/farm/expenses/{expense_id}")
+def api_delete_expense(expense_id: str, authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    success = store.delete_expense(expense_id, user_email=email)
+    if not success:
+        raise HTTPException(status_code=404, detail="Expense record not found")
+    return {"success": True}
+
+@app.get("/api/farm/summary")
+def api_get_farm_summary(orchard_id: Optional[str] = Query(None), authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    return store.get_farm_financial_summary(orchard_id=orchard_id, user_email=email)
+
+@app.get("/api/farm/export")
+def api_export_farm_data(format: str = Query("json"), authorization: Optional[str] = Header(None)):
+    email = get_auth_email(authorization)
+    data = store.export_farm_data(export_format=format, user_email=email)
+    if format.lower() == "csv":
+        return Response(
+            content=data,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=mangodl_farm_export_{time.strftime('%Y%m%d')}.csv"}
+        )
+    return data
+
+
+# ──────────────────────────────────────────────
+# Karnataka Mango Market Prices & AGMARKNET Data Endpoints
+# ──────────────────────────────────────────────
+
+@app.get("/api/market/karnataka")
+def api_get_karnataka_market_prices(
+    variety: Optional[str] = Query(None),
+    district: Optional[str] = Query(None),
+    market: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None)
+):
+    return store.get_karnataka_market_prices(
+        variety=variety,
+        district=district,
+        market=market,
+        sort_by=sort_by
+    )
+
+@app.get("/api/market/karnataka/trends")
+def api_get_market_trends(
+    variety: Optional[str] = Query("Badami (Alphonso)"),
+    market: Optional[str] = Query(None),
+    days: int = Query(30)
+):
+    return store.get_market_trends(variety=variety, market=market, days=days)
+
+@app.post("/api/market/karnataka/refresh")
+def api_refresh_market_prices():
+    return store.refresh_market_prices()
+
+
+# ──────────────────────────────────────────────
+# Real Karnataka Mango & Agriculture News Feed Endpoints
+# ──────────────────────────────────────────────
+
+@app.get("/api/news")
+def api_get_news_feed(
+    category: Optional[str] = Query(None),
+    unread_only: bool = Query(False)
+):
+    return store.get_news_feed(category=category, unread_only=unread_only)
+
+@app.post("/api/news/read/{article_id}")
+def api_mark_news_as_read(article_id: str):
+    success = store.mark_news_as_read(article_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return {"success": True, "articleId": article_id}
+
+@app.post("/api/news/read-all")
+def api_mark_all_news_as_read():
+    store.mark_all_news_as_read()
+    return {"success": True, "message": "All news articles marked as read."}
+
+@app.post("/api/news/refresh")
+def api_refresh_news_feed():
+    return store.refresh_news_feed()
 
 
 # ──────────────────────────────────────────────

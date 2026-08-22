@@ -11,6 +11,7 @@ export interface KPIData {
 }
 
 export type AppTheme = "dark" | "light";
+export type ColorTheme = "Cyber Amber" | "Emerald AgTech" | "Neon Cyan";
 export type AppLanguage = "en" | "hi" | "kn";
 
 export interface YieldDataPoint {

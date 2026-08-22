@@ -25,6 +25,7 @@ interface AuthStore {
   demoLogin: () => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  updateUser: (partialUser: Partial<AuthUser>) => void;
   clearError: () => void;
 }
 
@@ -53,6 +54,13 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       clearError: () => set({ error: null }),
+
+      updateUser: (partialUser) => {
+        const curr = get().user;
+        if (curr) {
+          set({ user: { ...curr, ...partialUser } });
+        }
+      },
 
       login: async (email, password) => {
         set({ isLoading: true, error: null });

@@ -268,10 +268,10 @@ export default function HelpCenterPage() {
 
   const getStatusColor = (s: string) => {
     switch (s) {
-      case "Resolved": return "bg-green-500/20 text-green-400 border-green-500/30";
-      case "Answered": return "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
-      case "In Progress": return "bg-amber-500/20 text-amber-300 border-amber-500/30";
-      default: return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+      case "Resolved": return "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30";
+      case "Answered": return "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30";
+      case "In Progress": return "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30";
+      default: return "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30";
     }
   };
 
@@ -281,37 +281,37 @@ export default function HelpCenterPage() {
         
         {/* Hero Header */}
         <StaggerItem>
-          <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] p-6 md:p-8 bg-gradient-to-r from-[#111827] via-[#0f172a] to-[#0f2415]">
+          <div className="relative overflow-hidden rounded-2xl border border-[var(--border-subtle)] p-6 md:p-8 card-glass">
             <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-yellow-500/[0.08] blur-3xl pointer-events-none" />
             <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-cyan-500/[0.06] blur-3xl pointer-events-none" />
 
             <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400/20 to-amber-600/30 border border-yellow-500/30 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(245,158,11,0.15)]">
-                  <Headphones className="w-7 h-7 text-yellow-400" />
+                <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(245,158,11,0.15)]">
+                  <Headphones className="w-7 h-7 text-yellow-500" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5 flex-wrap mb-1">
-                    <h1 className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">
+                    <h1 className="text-2xl md:text-3xl font-display font-bold text-[var(--text-primary)] tracking-tight">
                       {term("Help Center & Direct Farmer Support")}
                     </h1>
                     <NeonBadge label="Directly Handled by Manas & KSIT Team" variant="neon" size="sm" />
                   </div>
-                  <p className="text-gray-400 text-sm max-w-2xl">
+                  <p className="text-[var(--text-muted)] text-sm max-w-2xl">
                     Dedicated farmer consultation portal. Any grower across Karnataka can ask questions regarding disease diagnosis, climate extremes, harvest yield, or market revenue.
                   </p>
                 </div>
               </div>
 
               {/* View Switcher: Farmer vs Admin Mode */}
-              <div className="flex items-center p-1 rounded-xl bg-white/[0.06] border border-white/[0.1] shrink-0 self-stretch sm:self-auto">
+              <div className="flex items-center p-1 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] shrink-0 self-stretch sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setActiveTab("farmer")}
-                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeTab === "farmer"
                       ? "bg-yellow-500 text-black shadow-md shadow-yellow-500/20"
-                      : "text-gray-400 hover:text-white"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <UserCheck className="w-4 h-4" />
@@ -320,10 +320,10 @@ export default function HelpCenterPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("admin")}
-                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeTab === "admin"
                       ? "bg-cyan-500 text-black shadow-md shadow-cyan-500/20"
-                      : "text-gray-400 hover:text-white"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <ShieldCheck className="w-4 h-4" />
@@ -355,10 +355,10 @@ export default function HelpCenterPage() {
                 <div className="w-8 h-8 rounded-lg mx-auto mb-2 flex items-center justify-center" style={{ background: `${stat.color}15` }}>
                   <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
                 </div>
-                <div className="text-lg font-display font-bold text-white">
+                <div className="text-lg font-display font-bold text-[var(--text-primary)]">
                   <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                 </div>
-                <div className="text-[11px] text-gray-400">{stat.label}</div>
+                <div className="text-[11px] text-[var(--text-muted)] font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -377,12 +377,12 @@ export default function HelpCenterPage() {
                 <GlassCard className="p-6" hover={false}>
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-400">
+                      <div className="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-500">
                         <FileQuestion className="w-5 h-5" />
                       </div>
                       <div>
-                        <h2 className="text-white font-semibold text-lg">Ask a Question / Report Orchard Problem</h2>
-                        <p className="text-gray-400 text-xs">Direct consultation with Manas & the KSIT Agronomy Team</p>
+                        <h2 className="text-[var(--text-primary)] font-semibold text-lg">Ask a Question / Report Orchard Problem</h2>
+                        <p className="text-[var(--text-muted)] text-xs">Direct consultation with Manas & the KSIT Agronomy Team</p>
                       </div>
                     </div>
                     <NeonBadge label="Direct Response" variant="neon" size="sm" pulse />
@@ -392,9 +392,9 @@ export default function HelpCenterPage() {
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mb-5 p-4 rounded-xl bg-green-500/15 border border-green-500/30 text-green-300 text-xs flex items-center gap-3"
+                      className="mb-5 p-4 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 text-xs flex items-center gap-3"
                     >
-                      <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
                       <div>{submitSuccess}</div>
                     </motion.div>
                   )}
@@ -402,8 +402,8 @@ export default function HelpCenterPage() {
                   <form onSubmit={handleCreateTicket} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                          Farmer Name <span className="text-red-400">*</span>
+                        <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                          Farmer Name <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -411,11 +411,11 @@ export default function HelpCenterPage() {
                           value={farmerName}
                           onChange={(e) => setFarmerName(e.target.value)}
                           placeholder="e.g. Ramesh Gowda"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-yellow-500/50 text-white text-xs outline-none transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] text-xs outline-none transition-colors placeholder:text-[var(--text-faint)]"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                        <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                           Phone / WhatsApp Number
                         </label>
                         <input
@@ -423,20 +423,20 @@ export default function HelpCenterPage() {
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           placeholder="e.g. +91 98450 12345"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-yellow-500/50 text-white text-xs outline-none transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] text-xs outline-none transition-colors placeholder:text-[var(--text-faint)]"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                          Karnataka District <span className="text-red-400">*</span>
+                        <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                          Karnataka District <span className="text-red-500">*</span>
                         </label>
                         <select
                           value={district}
                           onChange={(e) => setDistrict(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-xl bg-[#0f172a] border border-white/[0.08] focus:border-yellow-500/50 text-white text-xs outline-none transition-colors"
+                          className="w-full px-3 py-2.5 rounded-xl bg-[var(--background-elevated)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] text-xs outline-none transition-colors"
                         >
                           {KARNATAKA_DISTRICTS_LIST.map((d) => (
                             <option key={d} value={d}>{d}</option>
@@ -444,13 +444,13 @@ export default function HelpCenterPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                        <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                           Mango Variety
                         </label>
                         <select
                           value={mangoVariety}
                           onChange={(e) => setMangoVariety(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-xl bg-[#0f172a] border border-white/[0.08] focus:border-yellow-500/50 text-white text-xs outline-none transition-colors"
+                          className="w-full px-3 py-2.5 rounded-xl bg-[var(--background-elevated)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] text-xs outline-none transition-colors"
                         >
                           {MANGO_VARIETIES.map((v) => (
                             <option key={v} value={v}>{v}</option>
@@ -458,13 +458,13 @@ export default function HelpCenterPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                        <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
                           Inquiry Category
                         </label>
                         <select
                           value={category}
                           onChange={(e) => setCategory(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-xl bg-[#0f172a] border border-white/[0.08] focus:border-yellow-500/50 text-white text-xs outline-none transition-colors"
+                          className="w-full px-3 py-2.5 rounded-xl bg-[var(--background-elevated)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] text-xs outline-none transition-colors"
                         >
                           {INQUIRY_CATEGORIES.map((c) => (
                             <option key={c} value={c}>{c}</option>
@@ -474,8 +474,8 @@ export default function HelpCenterPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                        Subject / Brief Summary <span className="text-red-400">*</span>
+                      <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                        Subject / Brief Summary <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -483,13 +483,13 @@ export default function HelpCenterPage() {
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
                         placeholder="e.g. Anthracnose spreading on young leaves after heavy rain"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-yellow-500/50 text-white text-xs outline-none transition-colors"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] text-xs outline-none transition-colors placeholder:text-[var(--text-faint)]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                        Detailed Question / Description <span className="text-red-400">*</span>
+                      <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                        Detailed Question / Description <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         required
@@ -497,13 +497,13 @@ export default function HelpCenterPage() {
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Describe your orchard condition, symptoms seen, tree age, or question regarding the MangoDL app..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-yellow-500/50 text-white text-xs outline-none transition-colors resize-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] text-xs outline-none transition-colors resize-none placeholder:text-[var(--text-faint)]"
                       />
                     </div>
 
                     <div className="flex items-center justify-between pt-2">
-                      <div className="text-[11px] text-gray-400 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-yellow-400" />
+                      <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-yellow-500" />
                         <span>Average response time: <strong>&lt; 2 hours</strong></span>
                       </div>
 
@@ -535,12 +535,12 @@ export default function HelpCenterPage() {
                       M
                     </div>
                     <div>
-                      <h3 className="text-white font-bold text-sm">Manas (Lead Researcher)</h3>
-                      <p className="text-gray-400 text-xs">KSIT CSE • MangoDL AI Platform</p>
+                      <h3 className="text-[var(--text-primary)] font-bold text-sm">Manas (Lead Researcher)</h3>
+                      <p className="text-[var(--text-muted)] text-xs">KSIT CSE • MangoDL AI Platform</p>
                     </div>
                   </div>
 
-                  <p className="text-gray-300 text-xs leading-relaxed mb-4">
+                  <p className="text-[var(--text-secondary)] text-xs leading-relaxed mb-4">
                     Direct developer & agronomist point of contact. Any mango grower in Karnataka can get direct technical and agricultural assistance.
                   </p>
 
@@ -549,10 +549,10 @@ export default function HelpCenterPage() {
                       href="https://wa.me/919876543210?text=Hello%20Manas%20sir,%20I%20am%20using%20MangoDL%20app%20and%20need%20assistance"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-300 font-medium transition-colors"
+                      className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-500 font-medium transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-green-400" />
+                        <MessageCircle className="w-4 h-4 text-green-500" />
                         Chat on WhatsApp Direct
                       </span>
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -560,17 +560,17 @@ export default function HelpCenterPage() {
 
                     <a
                       href="tel:+919876543210"
-                      className="flex items-center justify-between p-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-gray-200 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-soft)] hover:bg-[var(--surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-yellow-400" />
+                        <Phone className="w-4 h-4 text-yellow-500" />
                         Agronomist Hotline
                       </span>
-                      <span className="font-mono text-gray-400">+91 98765 43210</span>
+                      <span className="font-mono text-[var(--text-muted)]">+91 98765 43210</span>
                     </a>
 
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-gray-300">
-                      <Building2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                      <Building2 className="w-4 h-4 text-cyan-500 shrink-0" />
                       <span className="text-[11px] leading-tight">
                         Dept. of CSE, K.S. Institute of Technology, Bengaluru - 560109
                       </span>
@@ -581,23 +581,23 @@ export default function HelpCenterPage() {
                 {/* FAQ Quick Accordion */}
                 <GlassCard className="p-5" hover={false}>
                   <div className="flex items-center gap-2 mb-3">
-                    <BookOpen className="w-4 h-4 text-yellow-400" />
-                    <h3 className="text-white font-semibold text-sm">Frequently Asked Questions</h3>
+                    <BookOpen className="w-4 h-4 text-yellow-500" />
+                    <h3 className="text-[var(--text-primary)] font-semibold text-sm">Frequently Asked Questions</h3>
                   </div>
 
                   <div className="space-y-2">
                     {FAQ_ITEMS.map((faq, idx) => (
-                      <div key={idx} className="rounded-xl bg-white/[0.03] border border-white/[0.06] overflow-hidden">
+                      <div key={idx} className="rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
-                          className="w-full text-left p-3 text-xs font-semibold text-gray-200 flex items-center justify-between hover:text-yellow-300 transition-colors"
+                          className="w-full text-left p-3 text-xs font-semibold text-[var(--text-primary)] flex items-center justify-between hover:text-yellow-500 transition-colors cursor-pointer"
                         >
                           <span>{faq.question}</span>
-                          <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${openFaqIndex === idx ? "rotate-180" : ""}`} />
+                          <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-muted)] transition-transform ${openFaqIndex === idx ? "rotate-180" : ""}`} />
                         </button>
                         {openFaqIndex === idx && (
-                          <div className="px-3 pb-3 text-[11px] text-gray-400 leading-relaxed border-t border-white/[0.04] pt-2">
+                          <div className="px-3 pb-3 text-[11px] text-[var(--text-muted)] leading-relaxed border-t border-[var(--border-subtle)] pt-2">
                             {faq.answer}
                           </div>
                         )}
@@ -613,8 +613,8 @@ export default function HelpCenterPage() {
             <GlassCard className="p-6" hover={false}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-white font-bold text-base">Recent Farmer Inquiries & Expert Answers</h3>
-                  <p className="text-xs text-gray-400">Browse verified answers from the MangoDL team</p>
+                  <h3 className="text-[var(--text-primary)] font-bold text-base">Recent Farmer Inquiries & Expert Answers</h3>
+                  <p className="text-xs text-[var(--text-muted)]">Browse verified answers from the MangoDL team</p>
                 </div>
                 <NeonBadge label={`${tickets.length} Inquiries Logged`} variant="cyan" size="sm" />
               </div>
@@ -623,15 +623,15 @@ export default function HelpCenterPage() {
                 {tickets.slice(0, 4).map((ticket) => (
                   <div
                     key={ticket.id}
-                    className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-all"
+                    className="p-4 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-yellow-400 font-bold">#{ticket.id}</span>
-                        <span className="text-white font-semibold text-xs">{ticket.subject}</span>
+                        <span className="font-mono text-xs text-yellow-500 font-bold">#{ticket.id}</span>
+                        <span className="text-[var(--text-primary)] font-semibold text-xs">{ticket.subject}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-white/[0.06] text-gray-400 font-mono">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border-subtle)] font-mono">
                           {ticket.district} • {ticket.mangoVariety}
                         </span>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${getStatusColor(ticket.status)}`}>
@@ -640,20 +640,20 @@ export default function HelpCenterPage() {
                       </div>
                     </div>
 
-                    <p className="text-gray-300 text-xs leading-relaxed mb-3">
+                    <p className="text-[var(--text-secondary)] text-xs leading-relaxed mb-3">
                       &ldquo;{ticket.message}&rdquo;
                     </p>
 
                     {ticket.replies && ticket.replies.length > 0 && (
-                      <div className="p-3 rounded-lg bg-cyan-950/20 border border-cyan-500/20 text-xs">
-                        <div className="flex items-center justify-between text-[11px] text-cyan-300 font-semibold mb-1">
+                      <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs">
+                        <div className="flex items-center justify-between text-[11px] text-cyan-500 font-semibold mb-1">
                           <span className="flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                            <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
                             {ticket.replies[0].author}
                           </span>
-                          <span className="text-gray-500 font-mono text-[10px]">{ticket.replies[0].timestamp}</span>
+                          <span className="text-[var(--text-faint)] font-mono text-[10px]">{ticket.replies[0].timestamp}</span>
                         </div>
-                        <p className="text-gray-300 text-[11px] leading-relaxed">
+                        <p className="text-[var(--text-secondary)] text-[11px] leading-relaxed">
                           {ticket.replies[0].message}
                         </p>
                       </div>
@@ -678,13 +678,13 @@ export default function HelpCenterPage() {
                 
                 {/* Search */}
                 <div className="relative flex-1">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by farmer name, phone, district, or keyword..."
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-white/[0.04] border border-white/[0.08] focus:border-cyan-500/50 rounded-xl text-white outline-none transition-colors"
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-[var(--surface-soft)] border border-[var(--border-subtle)] focus:border-cyan-500 rounded-xl text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-faint)]"
                   />
                 </div>
 
@@ -695,10 +695,10 @@ export default function HelpCenterPage() {
                       key={st}
                       type="button"
                       onClick={() => setStatusFilter(st)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-colors ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-colors cursor-pointer ${
                         statusFilter === st
                           ? "bg-cyan-500 text-black font-bold shadow-sm"
-                          : "bg-white/[0.04] text-gray-400 hover:text-white"
+                          : "bg-[var(--surface-soft)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]"
                       }`}
                     >
                       {st}
@@ -724,12 +724,12 @@ export default function HelpCenterPage() {
                   <GlassCard key={ticket.id} className="p-5 transition-all" hover={false}>
                     
                     {/* Ticket Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="font-mono text-sm font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded border border-yellow-400/20">
+                        <span className="font-mono text-sm font-bold text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">
                           #{ticket.id}
                         </span>
-                        <h3 className="text-white font-bold text-sm sm:text-base">{ticket.subject}</h3>
+                        <h3 className="text-[var(--text-primary)] font-bold text-sm sm:text-base">{ticket.subject}</h3>
                         <NeonBadge label={ticket.category} variant="violet" size="sm" />
                         <NeonBadge label={ticket.priority} variant={getPriorityColor(ticket.priority)} size="sm" />
                       </div>
@@ -739,7 +739,7 @@ export default function HelpCenterPage() {
                         <select
                           value={ticket.status}
                           onChange={(e) => handleUpdateStatus(ticket.id, e.target.value as any)}
-                          className={`text-xs px-2.5 py-1 rounded-lg font-bold border outline-none cursor-pointer bg-[#0f172a] ${getStatusColor(ticket.status)}`}
+                          className={`text-xs px-2.5 py-1 rounded-lg font-bold border outline-none cursor-pointer bg-[var(--background-elevated)] ${getStatusColor(ticket.status)}`}
                         >
                           <option value="Open">Open</option>
                           <option value="In Progress">In Progress</option>
@@ -750,7 +750,7 @@ export default function HelpCenterPage() {
                         <button
                           type="button"
                           onClick={() => handleDelete(ticket.id)}
-                          className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                          className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer"
                           title="Delete Ticket"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -759,9 +759,9 @@ export default function HelpCenterPage() {
                     </div>
 
                     {/* Farmer Meta info */}
-                    <div className="flex flex-wrap items-center gap-4 py-2 text-xs text-gray-400">
-                      <span className="text-gray-200 font-semibold flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+                    <div className="flex flex-wrap items-center gap-4 py-2 text-xs text-[var(--text-muted)]">
+                      <span className="text-[var(--text-primary)] font-semibold flex items-center gap-1.5">
+                        <UserCheck className="w-3.5 h-3.5 text-cyan-500" />
                         {ticket.farmerName}
                       </span>
                       {ticket.phone && (
@@ -769,22 +769,22 @@ export default function HelpCenterPage() {
                           href={`https://wa.me/${ticket.phone.replace(/[^0-9]/g, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-green-400 hover:underline flex items-center gap-1 font-mono"
+                          className="text-green-500 hover:underline flex items-center gap-1 font-mono font-medium"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
                           {ticket.phone} (WhatsApp)
                         </a>
                       )}
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-yellow-400" />
+                        <MapPin className="w-3.5 h-3.5 text-yellow-500" />
                         {ticket.district}, Karnataka
                       </span>
-                      <span className="font-mono text-gray-400">Variety: {ticket.mangoVariety}</span>
-                      <span className="text-gray-500 ml-auto font-mono text-[11px]">{ticket.createdAt}</span>
+                      <span className="font-mono text-[var(--text-muted)]">Variety: {ticket.mangoVariety}</span>
+                      <span className="text-[var(--text-faint)] ml-auto font-mono text-[11px]">{ticket.createdAt}</span>
                     </div>
 
                     {/* Farmer's original message */}
-                    <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-gray-200 text-xs leading-relaxed my-3">
+                    <div className="p-3.5 rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs leading-relaxed my-3">
                       {ticket.message}
                     </div>
 
@@ -792,28 +792,28 @@ export default function HelpCenterPage() {
                     {ticket.replies && ticket.replies.length > 0 && (
                       <div className="space-y-2.5 my-3 pl-3 border-l-2 border-cyan-500/40">
                         {ticket.replies.map((rep) => (
-                          <div key={rep.id} className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-xs">
-                            <div className="flex items-center justify-between text-[11px] text-cyan-300 font-semibold mb-1">
+                          <div key={rep.id} className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs">
+                            <div className="flex items-center justify-between text-[11px] text-cyan-500 font-semibold mb-1">
                               <span className="flex items-center gap-1.5">
-                                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                                <ShieldCheck className="w-3.5 h-3.5 text-cyan-500" />
                                 {rep.author} ({rep.role})
                               </span>
-                              <span className="text-gray-500 font-mono text-[10px]">{rep.timestamp}</span>
+                              <span className="text-[var(--text-faint)] font-mono text-[10px]">{rep.timestamp}</span>
                             </div>
-                            <p className="text-gray-300 leading-relaxed text-xs">{rep.message}</p>
+                            <p className="text-[var(--text-secondary)] leading-relaxed text-xs">{rep.message}</p>
                           </div>
                         ))}
                       </div>
                     )}
 
                     {/* Direct Admin Reply Composer */}
-                    <div className="mt-4 pt-3 border-t border-white/[0.06] space-y-3">
+                    <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] space-y-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-gray-300 flex items-center gap-1.5">
-                          <SendHorizontal className="w-3.5 h-3.5 text-yellow-400" />
+                        <span className="font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+                          <SendHorizontal className="w-3.5 h-3.5 text-yellow-500" />
                           Reply Directly to {ticket.farmerName} as Manas:
                         </span>
-                        <span className="text-[10px] text-gray-500">Quick Templates Below</span>
+                        <span className="text-[10px] text-[var(--text-faint)]">Quick Templates Below</span>
                       </div>
 
                       {/* Quick Macro Templates */}
@@ -828,7 +828,7 @@ export default function HelpCenterPage() {
                                 [ticket.id]: (prev[ticket.id] ? prev[ticket.id] + " " : "") + tmpl.text,
                               }))
                             }
-                            className="px-2 py-1 rounded bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[10px] text-gray-300 hover:text-yellow-300 transition-colors"
+                            className="px-2 py-1 rounded bg-[var(--surface-soft)] hover:bg-[var(--surface)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-secondary)] hover:text-yellow-500 transition-colors cursor-pointer"
                           >
                             + {tmpl.title}
                           </button>
@@ -848,7 +848,7 @@ export default function HelpCenterPage() {
                             }
                           }}
                           placeholder={`Type advisory response to ${ticket.farmerName}...`}
-                          className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-yellow-500/50 text-white outline-none"
+                          className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-[var(--surface-soft)] border border-[var(--border-subtle)] focus:border-yellow-500 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-faint)]"
                         />
                         <GlowButton
                           variant="mango"
@@ -873,7 +873,7 @@ export default function HelpCenterPage() {
               })}
 
               {filteredTickets.length === 0 && (
-                <div className="text-center py-12 card-glass text-gray-400 text-xs">
+                <div className="text-center py-12 card-glass text-[var(--text-muted)] text-xs">
                   No inquiries matching the current status/search filter.
                 </div>
               )}

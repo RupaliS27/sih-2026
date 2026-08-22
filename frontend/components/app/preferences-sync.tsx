@@ -11,6 +11,7 @@ const localeMap = {
 
 export function PreferencesSync() {
   const theme = useDashboardStore((state) => state.theme);
+  const colorTheme = useDashboardStore((state) => state.colorTheme);
   const language = useDashboardStore((state) => state.language);
 
   useEffect(() => {
@@ -18,6 +19,13 @@ export function PreferencesSync() {
     root.dataset.theme = theme;
     root.style.colorScheme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (colorTheme) {
+      root.dataset.colorTheme = colorTheme;
+    }
+  }, [colorTheme]);
 
   useEffect(() => {
     document.documentElement.lang = localeMap[language];

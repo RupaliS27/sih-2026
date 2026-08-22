@@ -21,6 +21,8 @@ import {
   Headphones,
   PanelLeftClose,
   PanelLeftOpen,
+  Store,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/store/dashboard-store";
@@ -29,7 +31,9 @@ import { useLocalizedText } from "@/lib/localization";
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { id: "ai-agent", label: "AI Copilot Agent", icon: Sparkles, href: "/dashboard/ai-agent", badge: "LIVE" },
+  { id: "market", label: "Market Prices", icon: Store, href: "/dashboard/market", badge: "AGMARKNET" },
   { id: "disease-detection", label: "Disease Detection", icon: Microscope, href: "/dashboard/disease-detection" },
+  { id: "detection-history", label: "Detection History", icon: History, href: "/dashboard/detection-history" },
   { id: "yield-prediction", label: "Yield Prediction", icon: TrendingUp, href: "/dashboard/yield-prediction" },
   { id: "revenue-analytics", label: "Revenue Analytics", icon: DollarSign, href: "/dashboard/revenue-analytics" },
   { id: "climate-monitoring", label: "Climate Monitor", icon: CloudSun, href: "/dashboard/climate-monitoring" },

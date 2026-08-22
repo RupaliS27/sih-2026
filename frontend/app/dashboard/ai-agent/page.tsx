@@ -640,11 +640,11 @@ export default function AIAgentPage() {
         </div>
 
         {/* Main Grid: Chat Stream (Left) + Live Telemetry & Settings (Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT: Conversation Panel (8 Cols) */}
-          <div className="lg:col-span-8 flex flex-col space-y-4">
-            {/* Category Filter Chips */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT: Conversation Panel (8 Cols) - Fixed Container Height */}
+          <div className="lg:col-span-8 flex flex-col h-[calc(100vh-175px)] min-h-[580px] max-h-[880px]">
+            {/* Category Filter Chips - Fixed top bar */}
+            <div className="shrink-0 flex gap-2 overflow-x-auto pb-2 scrollbar-none mb-3">
               {categories.map((cat) => {
                 const Icon = cat.icon;
                 const active = activeCategory === cat.id;
@@ -652,13 +652,13 @@ export default function AIAgentPage() {
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all border ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
                       active
                         ? "bg-yellow-500/25 border-yellow-400/70 text-yellow-300 shadow-[0_0_16px_rgba(245,158,11,0.3)] ring-1 ring-yellow-400/40"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20"
+                        : "bg-[var(--surface-soft)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] hover:border-[var(--border-strong)]"
                     }`}
                   >
-                    <Icon className={`h-3.5 w-3.5 ${active ? "text-yellow-400 scale-110" : "text-gray-400"}`} />
+                    <Icon className={`h-3.5 w-3.5 ${active ? "text-yellow-400 scale-110" : "text-[var(--text-muted)]"}`} />
                     <span>{cat.label}</span>
                     {active && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 ml-0.5 animate-pulse" />}
                   </button>
@@ -666,16 +666,16 @@ export default function AIAgentPage() {
               })}
             </div>
 
-            {/* Chat Container Card */}
-            <GlassCard className="flex-1 flex flex-col min-h-[580px] h-[68vh] p-0 overflow-hidden border-yellow-500/20" hover={false}>
-              {/* Chat Sub-Header */}
-              <div className="flex items-center justify-between border-b border-white/10 px-5 py-3 bg-gradient-to-r from-yellow-500/10 via-transparent to-transparent">
-                <div className="flex items-center gap-2 text-xs text-gray-300">
+            {/* Chat Container Card - Strict Flex Column, Never Expands */}
+            <GlassCard className="flex-1 flex flex-col min-h-0 h-full p-0 overflow-hidden border-yellow-500/20 shadow-2xl rounded-2xl" hover={false}>
+              {/* 1. Chat Sub-Header (Fixed Top) */}
+              <div className="shrink-0 flex items-center justify-between border-b border-[var(--border-subtle)] px-4 sm:px-5 py-3 bg-gradient-to-r from-yellow-500/10 via-transparent to-transparent">
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                   </span>
-                  <span>Agent Model: <strong className="text-yellow-400 font-mono">{selectedModel}</strong></span>
+                  <span>Agent Model: <strong className="text-yellow-500 font-mono">{selectedModel}</strong></span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -688,12 +688,12 @@ export default function AIAgentPage() {
                         setTtsEnabled((prev) => !prev);
                       }
                     }}
-                    className={`px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1.5 transition-all ${
+                    className={`px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                       isSpeaking
-                        ? "border-red-500/40 bg-red-500/20 text-red-300"
+                        ? "border-red-500/40 bg-red-500/20 text-red-400"
                         : ttsEnabled
-                        ? "border-yellow-500/40 bg-yellow-500/15 text-yellow-400 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
-                        : "border-white/10 text-gray-400 hover:text-white hover:bg-white/5"
+                        ? "border-yellow-500/40 bg-yellow-500/15 text-yellow-500 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                        : "border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-soft)]"
                     }`}
                     title={
                       isSpeaking
@@ -706,11 +706,11 @@ export default function AIAgentPage() {
                     {isSpeaking ? (
                       <>
                         <Square className="h-3.5 w-3.5 fill-red-400 animate-pulse text-red-400" />
-                        <span className="font-semibold text-red-300">Stop Audio</span>
+                        <span className="font-semibold text-red-400">Stop Audio</span>
                       </>
                     ) : (
                       <>
-                        {ttsEnabled ? <Volume2 className="h-3.5 w-3.5 text-yellow-400" /> : <VolumeX className="h-3.5 w-3.5 text-gray-400" />}
+                        {ttsEnabled ? <Volume2 className="h-3.5 w-3.5 text-yellow-500" /> : <VolumeX className="h-3.5 w-3.5 text-[var(--text-muted)]" />}
                         <span>Auto Voice {ttsEnabled ? "ON" : "OFF"}</span>
                       </>
                     )}
@@ -718,43 +718,43 @@ export default function AIAgentPage() {
                 </div>
               </div>
 
-              {/* Active Specialized Domain Focus Banner */}
+              {/* 2. Active Specialized Domain Focus Banner (Fixed) */}
               {activeCategory !== "all" && activeTopicObj && (
-                <div className="flex items-center justify-between px-5 py-2.5 bg-yellow-500/10 border-b border-yellow-500/20 text-xs">
-                  <div className="flex items-center gap-2 text-yellow-300">
-                    <activeTopicObj.icon className="h-4 w-4 text-yellow-400 shrink-0" />
+                <div className="shrink-0 flex items-center justify-between px-4 sm:px-5 py-2 bg-yellow-500/10 border-b border-yellow-500/20 text-xs">
+                  <div className="flex items-center gap-2 text-yellow-500">
+                    <activeTopicObj.icon className="h-4 w-4 text-yellow-500 shrink-0" />
                     <span>
-                      <strong className="text-yellow-200">Active Focus:</strong> {activeTopicObj.label} &mdash;{" "}
-                      <span className="text-gray-300">{activeTopicObj.subtitle}</span>
+                      <strong className="text-yellow-400">Active Focus:</strong> {activeTopicObj.label} &mdash;{" "}
+                      <span className="text-[var(--text-secondary)]">{activeTopicObj.subtitle}</span>
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setActiveCategory("all")}
-                    className="text-[11px] text-yellow-400/90 hover:text-yellow-200 underline font-medium ml-2 shrink-0 transition-colors"
+                    className="text-[11px] text-yellow-500 hover:text-yellow-400 underline font-medium ml-2 shrink-0 transition-colors cursor-pointer"
                   >
                     Reset to All Topics
                   </button>
                 </div>
               )}
 
-              {/* Message Stream */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin">
+              {/* 3. Message Stream (Scrollable Area, Never Expands Page) */}
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-5 space-y-4 scrollbar-thin">
                 {messages.map((msg, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`flex gap-3.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    className={`flex gap-3.5 ${msg.role === "user" ? "justify-end" : "justify-start"} max-w-full`}
                   >
                     {msg.role === "assistant" && (
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border border-yellow-500/30 text-yellow-400 mt-0.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 mt-0.5">
                         <Bot className="h-5 w-5" />
                       </div>
                     )}
 
                     <div
-                      className={`relative max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-lg ${
+                      className={`relative max-w-[88%] sm:max-w-[82%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-lg break-words [overflow-wrap:anywhere] min-w-0 ${
                         msg.role === "user"
                           ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-medium shadow-[0_4px_20px_rgba(245,158,11,0.25)] rounded-tr-none"
                           : "bg-[var(--surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-tl-none backdrop-blur-md"
@@ -770,10 +770,10 @@ export default function AIAgentPage() {
                             <button
                               type="button"
                               onClick={() => speakAIResponse(msg.content, index)}
-                              className={`p-1 rounded-lg transition-all flex items-center gap-1 ${
+                              className={`p-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
                                 speakingMsgIndex === index
                                   ? "text-red-400 bg-red-500/20 border border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
-                                  : "text-gray-400 hover:text-yellow-400 hover:bg-yellow-500/10"
+                                  : "text-[var(--text-muted)] hover:text-yellow-500 hover:bg-yellow-500/10"
                               }`}
                               title={
                                 speakingMsgIndex === index
@@ -784,7 +784,7 @@ export default function AIAgentPage() {
                               {speakingMsgIndex === index ? (
                                 <>
                                   <Square className="h-3.5 w-3.5 fill-red-400 animate-pulse" />
-                                  <span className="text-[10px] font-mono text-red-300 font-semibold pr-0.5">Stop</span>
+                                  <span className="text-[10px] font-mono text-red-400 font-semibold pr-0.5">Stop</span>
                                 </>
                               ) : (
                                 <Volume2 className="h-3.5 w-3.5" />
@@ -792,10 +792,10 @@ export default function AIAgentPage() {
                             </button>
                             <button
                               onClick={() => handleCopyText(msg.content, index)}
-                              className="hover:text-yellow-400 transition-colors p-0.5"
+                              className="hover:text-yellow-500 transition-colors p-0.5 cursor-pointer text-[var(--text-muted)]"
                               title="Copy message"
                             >
-                              {copiedIndex === index ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                              {copiedIndex === index ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
                             </button>
                           </div>
                         </div>
@@ -805,7 +805,7 @@ export default function AIAgentPage() {
                       {msg.role === "assistant" ? (
                         <MarkdownMessage content={msg.content} />
                       ) : (
-                        <div className="font-medium whitespace-pre-wrap">{msg.content}</div>
+                        <div className="font-medium whitespace-pre-wrap break-words">{msg.content}</div>
                       )}
 
                       {/* Action Card Rendering */}
@@ -840,7 +840,7 @@ export default function AIAgentPage() {
                               <button
                                 key={qIndex}
                                 onClick={() => handleSendMessage(q)}
-                                className="text-left text-xs px-3 py-1.5 rounded-xl bg-[var(--surface-soft)] hover:bg-yellow-500/15 border border-[var(--border-subtle)] hover:border-yellow-500/40 text-[var(--text-primary)] hover:text-yellow-500 transition-all flex items-center gap-1.5"
+                                className="text-left text-xs px-3 py-1.5 rounded-xl bg-[var(--surface-soft)] hover:bg-yellow-500/15 border border-[var(--border-subtle)] hover:border-yellow-500/40 text-[var(--text-primary)] hover:text-yellow-500 transition-all flex items-center gap-1.5 cursor-pointer"
                               >
                                 <Sparkles className="h-3 w-3 text-yellow-500 shrink-0" />
                                 <span>{q}</span>
@@ -873,25 +873,25 @@ export default function AIAgentPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Quick Presets Drawer */}
-              <div className="px-5 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--surface-soft)] flex gap-2 overflow-x-auto scrollbar-none items-center">
-                <span className="text-[11px] font-semibold text-gray-400 shrink-0 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-yellow-400" />
+              {/* 4. Quick Presets Drawer (Fixed above composer) */}
+              <div className="shrink-0 px-4 sm:px-5 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--surface-soft)] flex gap-2 overflow-x-auto scrollbar-none items-center">
+                <span className="text-[11px] font-semibold text-[var(--text-muted)] shrink-0 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-yellow-500" />
                   {activeCategory === "all" ? "Quick Starters:" : `${activeTopicObj?.label} Prompts:`}
                 </span>
                 {filteredPresets.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => handleSendMessage(p.prompt)}
-                    className="shrink-0 px-3 py-1.5 rounded-xl bg-[var(--background-elevated)] hover:bg-yellow-500/15 border border-[var(--border-subtle)] hover:border-yellow-500/40 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all text-left flex items-center gap-1.5"
+                    className="shrink-0 px-3 py-1.5 rounded-xl bg-[var(--background-elevated)] hover:bg-yellow-500/15 border border-[var(--border-subtle)] hover:border-yellow-500/40 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all text-left flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>{p.title}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Message Input Bar */}
-              <div className="border-t border-[var(--border-subtle)] p-4 bg-[var(--surface)] space-y-2.5">
+              {/* 5. Message Input Bar Composer (Fixed at Bottom) */}
+              <div className="shrink-0 border-t border-[var(--border-subtle)] p-3.5 sm:p-4 bg-[var(--surface)] space-y-2.5">
                 {/* Voice Status Alert / Live Listening Banner */}
                 <AnimatePresence>
                   {isListening && (
@@ -917,7 +917,7 @@ export default function AIAgentPage() {
                       <button
                         type="button"
                         onClick={stopListening}
-                        className="px-2.5 py-1 rounded-lg bg-red-500/30 hover:bg-red-500/50 text-white font-medium text-[11px] transition-colors"
+                        className="px-2.5 py-1 rounded-lg bg-red-500/30 hover:bg-red-500/50 text-white font-medium text-[11px] transition-colors cursor-pointer"
                       >
                         Done Speaking
                       </button>
@@ -938,7 +938,7 @@ export default function AIAgentPage() {
                       <button
                         type="button"
                         onClick={() => setVoiceError(null)}
-                        className="text-[11px] text-gray-400 hover:text-white ml-2 underline"
+                        className="text-[11px] text-gray-400 hover:text-white ml-2 underline cursor-pointer"
                       >
                         Dismiss
                       </button>
@@ -955,7 +955,7 @@ export default function AIAgentPage() {
                   className="flex items-center gap-2"
                 >
                   {/* Multilingual Voice Language Toggle */}
-                  <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-0.5 shrink-0" title="Select Voice Recognition Language">
+                  <div className="flex items-center bg-[var(--surface-soft)] border border-[var(--border-subtle)] rounded-xl p-0.5 shrink-0" title="Select Voice Recognition Language">
                     {(
                       [
                         { id: "en-IN", label: "EN", name: "English" },
@@ -973,10 +973,10 @@ export default function AIAgentPage() {
                           }
                           if (isListening) stopListening();
                         }}
-                        className={`px-2 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                        className={`px-2 py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
                           voiceLang === l.id
-                            ? "bg-yellow-500/30 text-yellow-300 border border-yellow-400/40 shadow-sm"
-                            : "text-gray-400 hover:text-white"
+                            ? "bg-yellow-500/30 text-yellow-500 border border-yellow-500/40 shadow-sm"
+                            : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                         }`}
                         title={`Speech Recognition: ${l.name}`}
                       >
@@ -1000,7 +1000,7 @@ export default function AIAgentPage() {
                       type="button"
                       onClick={startListening}
                       disabled={isLoading || isStreaming}
-                      className="h-11 w-11 rounded-xl bg-white/5 hover:bg-yellow-500/20 border border-white/10 hover:border-yellow-400/50 text-gray-300 hover:text-yellow-400 flex items-center justify-center transition-all shrink-0 group disabled:opacity-40 cursor-pointer"
+                      className="h-11 w-11 rounded-xl bg-[var(--surface-soft)] hover:bg-yellow-500/20 border border-[var(--border-subtle)] hover:border-yellow-500/50 text-[var(--text-secondary)] hover:text-yellow-500 flex items-center justify-center transition-all shrink-0 group disabled:opacity-40 cursor-pointer"
                       title={
                         voiceLang === "kn-IN"
                           ? "ಧ್ವನಿ ಮೂಲಕ ಪ್ರಶ್ನೆ ಕೇಳಿ (Speak in Kannada)"
@@ -1020,8 +1020,8 @@ export default function AIAgentPage() {
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={isListening ? "Listening live to your speech..." : getPlaceholderText()}
                     disabled={isLoading || isStreaming}
-                    className={`flex-1 rounded-xl bg-white/5 border px-4 py-3 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:bg-white/10 transition-all disabled:opacity-50 ${
-                      isListening ? "border-red-500/60 ring-1 ring-red-500/40" : "border-white/10 focus:border-yellow-500/50"
+                    className={`flex-1 rounded-xl bg-[var(--surface-soft)] border px-4 py-3 text-xs sm:text-sm text-[var(--text-primary)] placeholder-[var(--text-faint)] focus:outline-none focus:bg-[var(--surface)] transition-all disabled:opacity-50 ${
+                      isListening ? "border-red-500/60 ring-1 ring-red-500/40" : "border-[var(--border-subtle)] focus:border-yellow-500/50"
                     }`}
                   />
 
@@ -1044,8 +1044,8 @@ export default function AIAgentPage() {
             </GlassCard>
           </div>
 
-          {/* RIGHT: Live Telemetry & Platform Context (4 Cols) */}
-          <div className="lg:col-span-4 space-y-5">
+          {/* RIGHT: Live Telemetry & Platform Context (4 Cols) - Match Height & Internal Scroll */}
+          <div className="lg:col-span-4 space-y-5 lg:h-[calc(100vh-175px)] lg:min-h-[580px] lg:max-h-[880px] lg:overflow-y-auto scrollbar-thin pb-4">
             {/* Live Orchard Context Card */}
             <GlassCard className="p-5 space-y-4" hover={false}>
               <div className="flex items-center justify-between border-b border-white/10 pb-3">

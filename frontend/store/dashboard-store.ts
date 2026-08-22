@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AppLanguage, AppTheme, DiseaseDetectionResult, YieldFactor } from "@/types";
+import type { AppLanguage, AppTheme, ColorTheme, DiseaseDetectionResult, YieldFactor } from "@/types";
+import type { UserSettings } from "@/lib/api-client";
 
 export interface YieldResultData {
   predictedYield: number;
@@ -26,8 +27,12 @@ interface DashboardStore {
   theme: AppTheme;
   setTheme: (theme: AppTheme) => void;
   toggleTheme: () => void;
+  colorTheme: ColorTheme;
+  setColorTheme: (colorTheme: ColorTheme) => void;
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
+  platformSettings: UserSettings | null;
+  setPlatformSettings: (settings: UserSettings) => void;
   activeModule: string;
   setActiveModule: (module: string) => void;
   isScanning: boolean;
@@ -52,8 +57,14 @@ export const useDashboardStore = create<DashboardStore>()(
       toggleTheme: () =>
         set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
 
+      colorTheme: "Cyber Amber",
+      setColorTheme: (colorTheme) => set({ colorTheme }),
+
       language: "en",
       setLanguage: (language) => set({ language }),
+
+      platformSettings: null,
+      setPlatformSettings: (settings) => set({ platformSettings: settings }),
 
       activeModule: "dashboard",
       setActiveModule: (module) => set({ activeModule: module }),
@@ -82,7 +93,9 @@ export const useDashboardStore = create<DashboardStore>()(
       partialize: (state) => ({
         sidebarOpen: state.sidebarOpen,
         theme: state.theme,
+        colorTheme: state.colorTheme,
         language: state.language,
+        platformSettings: state.platformSettings,
       }),
     }
   )

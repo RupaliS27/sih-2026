@@ -9,25 +9,57 @@ import type {
   AIRecommendation,
 } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL =
+  typeof window !== "undefined"
+    ? (process.env.NEXT_PUBLIC_API_URL || "")
+    : (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000");
 
 async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const customHeaders: Record<string, string> = {};
+  if (options?.headers) {
+    if (options.headers instanceof Headers) {
+      options.headers.forEach((v, k) => {
+        customHeaders[k] = v;
+      });
+    } else if (Array.isArray(options.headers)) {
+      options.headers.forEach(([k, v]) => {
+        customHeaders[k] = v;
+      });
+    } else {
+      Object.assign(customHeaders, options.headers);
+    }
+  }
+
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
-      ...options?.headers,
+      ...customHeaders,
     },
-    ...options,
   });
 
   if (!res.ok) {
     let errorMsg = `API Error (${res.status})`;
     try {
       const errObj = await res.json();
-      if (errObj.detail) errorMsg = errObj.detail;
+      if (errObj) {
+        if (typeof errObj.detail === "string") {
+          errorMsg = errObj.detail;
+        } else if (Array.isArray(errObj.detail)) {
+          errorMsg = errObj.detail.map((d: any) => d.msg || JSON.stringify(d)).join(", ");
+        } else if (errObj.detail && typeof errObj.detail === "object") {
+          errorMsg = JSON.stringify(errObj.detail);
+        } else if (typeof errObj.message === "string") {
+          errorMsg = errObj.message;
+        }
+      }
     } catch {
-      const errorText = await res.text();
-      if (errorText) errorMsg = errorText;
+      try {
+        const errorText = await res.text();
+        if (errorText) errorMsg = errorText;
+      } catch {
+        // fallback to default errorMsg
+      }
     }
     throw new Error(errorMsg);
   }
@@ -296,6 +328,40 @@ export async function getDataflowStats(): Promise<DataflowStatsResponse> {
 // --------------------------------------------
 // Settings
 // --------------------------------------------
+export interface ApiKeyRecord {
+  id: string;
+  name: string;
+  maskedKey: string;
+  createdAt: string;
+  lastUsed: string;
+  status: string;
+  rawKey?: string;
+}
+
+export interface SessionInfo {
+  status: string;
+  email: string;
+  maskedSessionId: string;
+  device: string;
+  ipAddress: string;
+  lastActivity: string;
+  twoFactorStatus: string;
+}
+
+export interface IntegrationItem {
+  name: string;
+  status: string;
+  badge: string;
+  configured: boolean;
+}
+
+export interface IntegrationsStatus {
+  openMeteo: IntegrationItem;
+  nhbDatabase: IntegrationItem;
+  litellmRouter: IntegrationItem;
+  whatsappAlerts: IntegrationItem;
+}
+
 export interface UserSettings {
   profile: {
     fullName: string;
@@ -306,6 +372,7 @@ export interface UserSettings {
     role: string;
   };
   aiConfig: {
+    diseaseArchitecture: string;
     autoScanFrequency: string;
     detectionThreshold: string;
     yieldModelVersion: string;
@@ -314,16 +381,479 @@ export interface UserSettings {
     revenueForecasting: boolean;
     betaFeatures: boolean;
   };
+  notifications: {
+    emailAlerts: boolean;
+    whatsappAlerts: boolean;
+    climateAlerts: boolean;
+    weeklyDigest: boolean;
+    soundAlerts?: boolean;
+  };
+  security: {
+    twoFactorEnabled: boolean;
+    sessionTimeout: string;
+    loginNotifications: boolean;
+  };
+  appearance: {
+    theme: "Cyber Amber" | "Emerald AgTech" | "Neon Cyan";
+    compactMode: boolean;
+    highContrast: boolean;
+  };
+  integrations: {
+    openMeteo: { name: string; enabled: boolean };
+    nhbDatabase: { name: string; enabled: boolean };
+    litellmRouter: { name: string; enabled: boolean };
+    whatsappWebhook: { name: string; enabled: boolean };
+  };
+  apiKeys: ApiKeyRecord[];
 }
 
-export async function getSettings(): Promise<UserSettings> {
-  return fetchJson<UserSettings>("/api/settings");
+export async function getSettings(token?: string): Promise<UserSettings> {
+  return fetchJson<UserSettings>("/api/settings", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
 }
 
-export async function saveSettings(settings: UserSettings): Promise<{ success: boolean }> {
-  return fetchJson<{ success: boolean }>("/api/settings", {
+export async function saveSettings(settings: Partial<UserSettings>, token?: string): Promise<{ success: boolean; settings?: UserSettings }> {
+  return fetchJson<{ success: boolean; settings?: UserSettings }>("/api/settings", {
     method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: JSON.stringify(settings),
+  });
+}
+
+export async function getSessionInfo(token?: string): Promise<SessionInfo> {
+  return fetchJson<SessionInfo>("/api/settings/session", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function getApiKeys(token?: string): Promise<{ keys: ApiKeyRecord[] }> {
+  return fetchJson<{ keys: ApiKeyRecord[] }>("/api/settings/api-keys", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function createApiKey(name: string, token?: string): Promise<ApiKeyRecord> {
+  return fetchJson<ApiKeyRecord>("/api/settings/api-keys", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function deleteApiKey(keyId: string, token?: string): Promise<{ success: boolean; deletedKeyId: string }> {
+  return fetchJson<{ success: boolean; deletedKeyId: string }>(`/api/settings/api-keys/${keyId}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function getIntegrationsStatus(): Promise<IntegrationsStatus> {
+  return fetchJson<IntegrationsStatus>("/api/settings/integrations/status");
+}
+
+// --------------------------------------------
+// Farm Management & Crop Memory
+// --------------------------------------------
+export interface Orchard {
+  id: string;
+  userEmail?: string;
+  name: string;
+  location: string;
+  variety: string;
+  area: number;
+  treeCount: number;
+  plantingYear: number;
+  irrigationType: string;
+  notes?: string;
+  status: "Active" | "Archived";
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OrchardBlock {
+  id: string;
+  orchardId: string;
+  userEmail?: string;
+  name: string;
+  variety: string;
+  area: number;
+  treeCount: number;
+  plantingYear: number;
+  irrigation: string;
+  notes?: string;
+  status: "Active" | "Archived";
+  createdAt?: string;
+}
+
+export interface TreatmentRecord {
+  id: string;
+  orchardId: string;
+  blockId?: string;
+  userEmail?: string;
+  name: string;
+  date: string;
+  quantity: string;
+  purpose: string;
+  nextApplicationDate?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface ExpenseRecord {
+  id: string;
+  orchardId: string;
+  blockId?: string;
+  userEmail?: string;
+  category: "Fertilizer" | "Pesticide" | "Labour" | "Irrigation" | "Transport" | "Other";
+  amount: number;
+  date: string;
+  description: string;
+  createdAt?: string;
+}
+
+export interface FarmSummaryData {
+  orchardsCount: number;
+  totalAreaAcres: number;
+  totalTrees: number;
+  totalExpenses: number;
+  expectedRevenue: number;
+  estimatedProfit: number;
+  estimatedProductionTons: number;
+  roiPercentage: number;
+  categoryBreakdown: Record<string, number>;
+}
+
+export async function getOrchardsApi(token?: string): Promise<{ orchards: Orchard[] }> {
+  return fetchJson<{ orchards: Orchard[] }>("/api/farm/orchards", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function createOrchardApi(payload: Partial<Orchard>, token?: string): Promise<{ success: boolean; orchard: Orchard }> {
+  return fetchJson<{ success: boolean; orchard: Orchard }>("/api/farm/orchards", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateOrchardApi(id: string, payload: Partial<Orchard>, token?: string): Promise<{ success: boolean; orchard: Orchard }> {
+  return fetchJson<{ success: boolean; orchard: Orchard }>(`/api/farm/orchards/${id}`, {
+    method: "PUT",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteOrchardApi(id: string, token?: string): Promise<{ success: boolean }> {
+  return fetchJson<{ success: boolean }>(`/api/farm/orchards/${id}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function getBlocksApi(orchardId?: string, token?: string): Promise<{ blocks: OrchardBlock[] }> {
+  const query = orchardId ? `?orchard_id=${encodeURIComponent(orchardId)}` : "";
+  return fetchJson<{ blocks: OrchardBlock[] }>(`/api/farm/blocks${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function createBlockApi(payload: Partial<OrchardBlock>, token?: string): Promise<{ success: boolean; block: OrchardBlock }> {
+  return fetchJson<{ success: boolean; block: OrchardBlock }>("/api/farm/blocks", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateBlockApi(id: string, payload: Partial<OrchardBlock>, token?: string): Promise<{ success: boolean; block: OrchardBlock }> {
+  return fetchJson<{ success: boolean; block: OrchardBlock }>(`/api/farm/blocks/${id}`, {
+    method: "PUT",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteBlockApi(id: string, token?: string): Promise<{ success: boolean }> {
+  return fetchJson<{ success: boolean }>(`/api/farm/blocks/${id}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function getTreatmentsApi(orchardId?: string, blockId?: string, token?: string): Promise<{ treatments: TreatmentRecord[] }> {
+  const params = new URLSearchParams();
+  if (orchardId) params.append("orchard_id", orchardId);
+  if (blockId) params.append("block_id", blockId);
+  const q = params.toString() ? `?${params.toString()}` : "";
+  return fetchJson<{ treatments: TreatmentRecord[] }>(`/api/farm/treatments${q}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function createTreatmentApi(payload: Partial<TreatmentRecord>, token?: string): Promise<{ success: boolean; treatment: TreatmentRecord }> {
+  return fetchJson<{ success: boolean; treatment: TreatmentRecord }>("/api/farm/treatments", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateTreatmentApi(id: string, payload: Partial<TreatmentRecord>, token?: string): Promise<{ success: boolean; treatment: TreatmentRecord }> {
+  return fetchJson<{ success: boolean; treatment: TreatmentRecord }>(`/api/farm/treatments/${id}`, {
+    method: "PUT",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteTreatmentApi(id: string, token?: string): Promise<{ success: boolean }> {
+  return fetchJson<{ success: boolean }>(`/api/farm/treatments/${id}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function getExpensesApi(orchardId?: string, blockId?: string, token?: string): Promise<{ expenses: ExpenseRecord[] }> {
+  const params = new URLSearchParams();
+  if (orchardId) params.append("orchard_id", orchardId);
+  if (blockId) params.append("block_id", blockId);
+  const q = params.toString() ? `?${params.toString()}` : "";
+  return fetchJson<{ expenses: ExpenseRecord[] }>(`/api/farm/expenses${q}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function createExpenseApi(payload: Partial<ExpenseRecord>, token?: string): Promise<{ success: boolean; expense: ExpenseRecord }> {
+  return fetchJson<{ success: boolean; expense: ExpenseRecord }>("/api/farm/expenses", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateExpenseApi(id: string, payload: Partial<ExpenseRecord>, token?: string): Promise<{ success: boolean; expense: ExpenseRecord }> {
+  return fetchJson<{ success: boolean; expense: ExpenseRecord }>(`/api/farm/expenses/${id}`, {
+    method: "PUT",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteExpenseApi(id: string, token?: string): Promise<{ success: boolean }> {
+  return fetchJson<{ success: boolean }>(`/api/farm/expenses/${id}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+export async function getFarmSummaryApi(orchardId?: string, token?: string): Promise<FarmSummaryData> {
+  const query = orchardId ? `?orchard_id=${encodeURIComponent(orchardId)}` : "";
+  return fetchJson<FarmSummaryData>(`/api/farm/summary${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
+// --------------------------------------------
+// Real Karnataka Mango Market Prices (AGMARKNET)
+// --------------------------------------------
+export interface MarketPriceRecord {
+  id: string;
+  variety: string;
+  district: string;
+  market: string;
+  state: string;
+  minPrice: number;
+  avgPrice: number;
+  maxPrice: number;
+  pricePerKgMin: number;
+  pricePerKgAvg: number;
+  pricePerKgMax: number;
+  previousAvgPrice: number;
+  priceChange: number;
+  direction: "up" | "down" | "flat";
+  arrivalQuantityTonnes: number;
+  grade?: string;
+  lastUpdated: string;
+  hasData?: boolean;
+}
+
+export interface MarketSummary {
+  stateAveragePricePerKg: number;
+  stateAveragePricePerQuintal: number;
+  totalArrivalsTodayTonnes: number;
+  topGainer?: {
+    variety: string;
+    market: string;
+    change: number;
+    pricePerKg: number;
+  } | null;
+  topDecline?: {
+    variety: string;
+    market: string;
+    change: number;
+    pricePerKg: number;
+  } | null;
+  highestPrice?: {
+    variety: string;
+    market: string;
+    pricePerKg: number;
+    district: string;
+  } | null;
+  lowestPrice?: {
+    variety: string;
+    market: string;
+    pricePerKg: number;
+    district: string;
+  } | null;
+}
+
+export interface MarketPricesResponse {
+  source: string;
+  sourceUrl: string;
+  state: string;
+  lastSynced: string;
+  totalRecords: number;
+  totalTrackedMandis: number;
+  availableVarieties: string[];
+  availableDistricts: string[];
+  availableMandis: string[];
+  summary: MarketSummary;
+  records: MarketPriceRecord[];
+}
+
+export interface MarketTrendPoint {
+  date: string;
+  avgPrice: number;
+  pricePerKg: number;
+  minPrice: number;
+  maxPrice: number;
+  arrivals?: number;
+}
+
+export interface MarketTrendData {
+  variety: string;
+  days: number;
+  requestedDays: number;
+  points: MarketTrendPoint[];
+  startPricePerKg: number;
+  currentPricePerKg: number;
+  startPriceQuintal: number;
+  currentPriceQuintal: number;
+  percentageChange: number;
+  trendDirection: "up" | "down" | "flat";
+  minPricePerKg: number;
+  maxPricePerKg: number;
+  averagePricePerKg: number;
+  source: string;
+  lastUpdated: string;
+}
+
+export async function getKarnatakaMarketPrices(params?: {
+  variety?: string;
+  district?: string;
+  market?: string;
+  sort_by?: string;
+}): Promise<MarketPricesResponse> {
+  const q = new URLSearchParams();
+  if (params?.variety) q.append("variety", params.variety);
+  if (params?.district) q.append("district", params.district);
+  if (params?.market) q.append("market", params.market);
+  if (params?.sort_by) q.append("sort_by", params.sort_by);
+  const queryStr = q.toString() ? `?${q.toString()}` : "";
+  return fetchJson<MarketPricesResponse>(`/api/market/karnataka${queryStr}`);
+}
+
+export async function getMarketTrends(
+  variety: string = "Badami (Alphonso)",
+  market?: string,
+  days: number = 30
+): Promise<MarketTrendData> {
+  const q = new URLSearchParams();
+  q.append("variety", variety);
+  if (market) q.append("market", market);
+  q.append("days", days.toString());
+  return fetchJson<MarketTrendData>(`/api/market/karnataka/trends?${q.toString()}`);
+}
+
+export async function refreshMarketPrices(): Promise<{
+  success: boolean;
+  message: string;
+  lastSynced: string;
+  totalRecords: number;
+}> {
+  return fetchJson<{
+    success: boolean;
+    message: string;
+    lastSynced: string;
+    totalRecords: number;
+  }>("/api/market/karnataka/refresh", {
+    method: "POST",
+  });
+}
+
+// --------------------------------------------
+// Real Karnataka Mango & Agriculture News Feed
+// --------------------------------------------
+export interface NewsArticle {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  publishedAt: string;
+  category: string;
+  url: string;
+  read: boolean;
+  severity?: "high" | "medium" | "info";
+}
+
+export interface NewsFeedResponse {
+  lastUpdated: string;
+  source: string;
+  totalArticles: number;
+  unreadCount: number;
+  categories: string[];
+  articles: NewsArticle[];
+}
+
+export async function getNewsFeed(params?: {
+  category?: string;
+  unread_only?: boolean;
+}): Promise<NewsFeedResponse> {
+  const q = new URLSearchParams();
+  if (params?.category && params.category !== "ALL") q.append("category", params.category);
+  if (params?.unread_only) q.append("unread_only", "true");
+  const queryStr = q.toString() ? `?${q.toString()}` : "";
+  return fetchJson<NewsFeedResponse>(`/api/news${queryStr}`);
+}
+
+export async function markNewsAsRead(articleId: string): Promise<{ success: boolean; articleId: string }> {
+  return fetchJson<{ success: boolean; articleId: string }>(`/api/news/read/${encodeURIComponent(articleId)}`, {
+    method: "POST",
+  });
+}
+
+export async function markAllNewsAsRead(): Promise<{ success: boolean; message: string }> {
+  return fetchJson<{ success: boolean; message: string }>("/api/news/read-all", {
+    method: "POST",
+  });
+}
+
+export async function refreshNewsFeed(): Promise<{
+  success: boolean;
+  message: string;
+  lastUpdated: string;
+  totalArticles: number;
+}> {
+  return fetchJson<{
+    success: boolean;
+    message: string;
+    lastUpdated: string;
+    totalArticles: number;
+  }>("/api/news/refresh", {
+    method: "POST",
   });
 }
 

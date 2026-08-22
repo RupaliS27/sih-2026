@@ -14,7 +14,7 @@ export function MarkdownMessage({ content, className = "" }: MarkdownMessageProp
   const cleanedContent = content.replace(/\[ACTION_CARD:[\s\S]*?\]/g, "").trim();
 
   return (
-    <div className={`prose prose-invert max-w-none text-xs sm:text-sm leading-relaxed space-y-3 ${className}`}>
+    <div className={`prose prose-invert max-w-full text-xs sm:text-sm leading-relaxed space-y-3 break-words [overflow-wrap:anywhere] overflow-x-hidden ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

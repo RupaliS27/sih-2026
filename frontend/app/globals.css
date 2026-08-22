@@ -52,7 +52,30 @@
   --accent-cyan: #22d3ee;
   --accent-neon: #22c55e;
   --accent-violet: #8b5cf6;
+  --theme-accent-rgb: 245, 158, 11;
   color-scheme: dark;
+}
+
+/* Color Themes */
+[data-color-theme="Cyber Amber"],
+[data-color-theme="cyber-amber"] {
+  --accent-mango: #f59e0b;
+  --border-strong: rgba(245, 158, 11, 0.25);
+  --theme-accent-rgb: 245, 158, 11;
+}
+
+[data-color-theme="Emerald AgTech"],
+[data-color-theme="emerald-agtech"] {
+  --accent-mango: #10b981;
+  --border-strong: rgba(16, 185, 129, 0.25);
+  --theme-accent-rgb: 16, 185, 129;
+}
+
+[data-color-theme="Neon Cyan"],
+[data-color-theme="neon-cyan"] {
+  --accent-mango: #06b6d4;
+  --border-strong: rgba(6, 182, 212, 0.25);
+  --theme-accent-rgb: 6, 182, 212;
 }
 
 [data-theme="light"] {
@@ -75,6 +98,21 @@
   color-scheme: light;
 }
 
+[data-theme="light"][data-color-theme="Cyber Amber"] {
+  --accent-mango: #d97706;
+  --border-strong: rgba(217, 119, 6, 0.35);
+}
+
+[data-theme="light"][data-color-theme="Emerald AgTech"] {
+  --accent-mango: #059669;
+  --border-strong: rgba(5, 150, 105, 0.35);
+}
+
+[data-theme="light"][data-color-theme="Neon Cyan"] {
+  --accent-mango: #0284c7;
+  --border-strong: rgba(2, 132, 199, 0.35);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -82,7 +120,7 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(245, 158, 11, 0.08), transparent 28%),
+    radial-gradient(circle at top left, rgba(var(--theme-accent-rgb, 245, 158, 11), 0.09), transparent 28%),
     radial-gradient(circle at bottom right, rgba(34, 211, 238, 0.06), transparent 24%),
     linear-gradient(180deg, var(--background-elevated), var(--background));
   color: var(--text-primary);
