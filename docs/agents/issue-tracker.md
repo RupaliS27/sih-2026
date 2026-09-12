@@ -1,7 +1,7 @@
 # Issue tracker: Local Markdown & GitHub
 
 Issues, specifications, and tracer-bullet tickets for this project live as markdown files in `.scratch/`.
-Remote repository: https://github.com/manasmishra16/mango-disease-prediction
+Remote repository: https://github.com/RupaliS27/sih-2026
 
 ## Conventions
 
